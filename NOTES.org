@@ -1,0 +1,7 @@
+* Docker and Django
+** Dockerfile
+** Docker Compose
+*** Volumes
+**** A way to map a local drive to a drive within the container, allowing for files that are saved to be reflected in the container without having to rebuild it
+*** Command
+**** If no command is provided from the command line, this will run as a default
