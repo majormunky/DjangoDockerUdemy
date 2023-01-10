@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 CREATE_USER_URL = reverse('user:create')
+TOKEN_URL = reverse('user:token')
 
 
 def create_user(**kwargs):
@@ -63,3 +64,59 @@ class PublicUserAPITests(TestCase):
             email=payload['email']
         ).exists()
         self.assertFalse(user_exists)
+
+    def test_create_token_for_user_works(self):
+        """Test generates token for user with valid credentials."""
+        user_details = {
+            "first_name": "John",
+            "last_name": "Doe",
+            "email": "test@example.com",
+            "password": "testpass1234"
+        }
+        create_user(**user_details)
+        payload = {
+            'email': user_details['email'],
+            'password': user_details['password']
+        }
+
+        res = self.client.post(TOKEN_URL, payload)
+
+        self.assertIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_create_token_with_incorrect_details_fails(self):
+        """Test that trying to get a token with incorrect details fails"""
+        user_details = {
+            "email": "test@example.com",
+            "password": "goodpass1234"
+        }
+        create_user(
+            email=user_details['email'],
+            password=user_details['password']
+        )
+        payload = {
+            "email": user_details['email'],
+            "password": "incorrect-password"
+        }
+
+        res = self.client.post(TOKEN_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_token_with_missing_password_fails(self):
+        """Test that trying to get a token with incorrect details fails"""
+        user_details = {
+            "email": "test@example.com",
+            "password": "goodpass1234"
+        }
+        create_user(
+            email=user_details['email'],
+            password=user_details['password']
+        )
+        payload = {
+            "email": user_details['email'],
+            "password": ""
+        }
+
+        res = self.client.post(TOKEN_URL, payload)
+        self.assertNotIn('token', res.data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
