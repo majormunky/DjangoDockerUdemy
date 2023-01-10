@@ -36,6 +36,11 @@ def create_recipe(user, **kwargs):
     return recipe
 
 
+def create_user(**kwargs):
+    """Create and return a new user."""
+    return get_user_model().objects.create_user(**kwargs)
+
+
 class PublicRecipeApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -49,9 +54,9 @@ class PublicRecipeApiTests(TestCase):
 class PrivateRecipeApiTests(TestCase):
     def setUp(self):
         self.client = APIClient()
-        self.user = get_user_model().objects.create_user(
-            "test@example.com",
-            "testpassword123"
+        self.user = create_user(
+            email="test@example.com",
+            password="testpassword123"
         )
         self.client.force_authenticate(self.user)
 
@@ -67,9 +72,9 @@ class PrivateRecipeApiTests(TestCase):
 
     def test_recipe_list_limited_to_user_who_created_works(self):
         """Test that the API returns only recipes for that user."""
-        other_user = get_user_model().objects.create_user(
-            "test2@example.com",
-            "testpassword123"
+        other_user = create_user(
+            email="test2@example.com",
+            password="testpassword123"
         )
         create_recipe(user=other_user)
         create_recipe(user=self.user)
@@ -88,3 +93,18 @@ class PrivateRecipeApiTests(TestCase):
 
         serializer = RecipeDetailSerializer(recipe)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_recipe_works(self):
+        """Test that creating a recipe over the API works."""
+        payload = {
+            "title": "Sample Recipe",
+            "time_minutes": 30,
+            "price": Decimal("5.99"),
+        }
+        res = self.client.post(RECIPE_URL, payload)
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipe = Recipe.objects.get(id=res.data["id"])
+        for k, v in payload.items():
+            self.assertEqual(getattr(recipe, k), v)
+        self.assertEqual(recipe.user, self.user)
+
