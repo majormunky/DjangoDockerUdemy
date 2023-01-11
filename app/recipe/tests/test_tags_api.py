@@ -20,7 +20,12 @@ def create_user(email="user@example.com", password="testpassword123"):
 
 def create_tag(name, user):
     """Create and return a tag."""
-    return Tag.objects.create(user=self.user, name=name)
+    return Tag.objects.create(user=user, name=name)
+
+
+def detail_url(tag_id):
+    """Create and return a detail tag url."""
+    return reverse("recipe:tag-detail", args=[tag_id])
 
 
 class PublicTagsApiTests(TestCase):
@@ -56,7 +61,7 @@ class PrivateTagsApiTests(TestCase):
 
     def test_get_tags_limited_to_user_works(self):
         """Test that we can only get tags we create."""
-        user2 = create_user()
+        user2 = create_user(email="user2@example.com")
         create_tag("Test", user2)
         my_tag = create_tag("My Item", self.user)
 
@@ -66,3 +71,19 @@ class PrivateTagsApiTests(TestCase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]["name"], my_tag.name)
         self.assertEqual(res.data[0]["id"], my_tag.id)
+
+    def test_update_tag_works(self):
+        """Test updating a tag works."""
+        tag = create_tag("After Dinner", self.user)
+
+        payload = {
+            "name": "Dessert"
+        }
+
+        url = detail_url(tag.id)
+        res = self.client.patch(url, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        tag.refresh_from_db()
+        self.assertEqual(tag.name, payload["name"])
