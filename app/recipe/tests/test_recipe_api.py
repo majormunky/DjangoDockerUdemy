@@ -276,7 +276,7 @@ class PrivateRecipeApiTests(TestCase):
         self.assertIn(tag_lunch, recipe.tags.all())
 
         # Patch will replace data instead of updating it
-        self.assertNotIn(tag_lunch, recipe.tags.all())
+        self.assertNotIn(tag_breakfast, recipe.tags.all())
 
     def test_clear_recipe_tags_works(self):
         """Test that we can clear the tags for a recipe."""
