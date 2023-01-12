@@ -1,7 +1,27 @@
 * Docker and Django
-** Dockerfile
-** Docker Compose
-*** Volumes
-**** A way to map a local drive to a drive within the container, allowing for files that are saved to be reflected in the container without having to rebuild it
-*** Command
-**** If no command is provided from the command line, this will run as a default
+** Docker
+*** Dockerfile
+**** Docker Compose
+***** Volumes
+****** A way to map a local drive to a drive within the container, allowing for files that are saved to be reflected in the container without having to rebuild it
+***** Command
+****** If no command is provided from the command line, this will run as a default
+** Github Actions
+** Django Testing
+** Custom User Model
+** Setting up Django Admin
+** API Documentation
+*** DRF Spectacular
+```
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectactular.openapi.AutoSchema',
+}
+```
+**** OpenAPI
+*** Swagger UI
+** DRF
+*** APIView
+**** Centered around specific HTTP action (GET, POST)
+*** Viewsets
+**** Focused around actions (retrieve, list, update)
+***** Need to use routers to map urls
