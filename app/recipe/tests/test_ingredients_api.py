@@ -89,12 +89,12 @@ class PrivateIngredientApiTests(TestCase):
         good_ingredient = Ingredient.objects.create(user=self.user, name="Banana")
 
         url = detail_url(bad_ingredient.id)
-
         res = self.client.delete(url)
-
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
+        # get list of current ingredients for current user
         ingredient_list = Ingredient.objects.filter(user=self.user)
 
+        # we should only have one, and it should be the good ingredient
         self.assertEqual(ingredient_list.count(), 1)
         self.assertEqual(ingredient_list[0].name, good_ingredient.name)

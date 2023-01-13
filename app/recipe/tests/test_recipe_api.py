@@ -10,6 +10,7 @@ from rest_framework.test import APIClient
 from core.models import (
     Recipe,
     Tag,
+    Ingredient,
 )
 from recipe.serializers import (
     RecipeSerializer,
@@ -292,3 +293,49 @@ class PrivateRecipeApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(recipe.tags.count(), 0)
+
+    def test_creating_ingredient_with_recipe_works(self):
+        """Test that we can create a new ingredient with a recipe."""
+        payload = {
+            "title": "Cauliflower Tacos",
+            "time_minutes": 60,
+            "price": Decimal("4.39"),
+            "ingredients": [{"name": "Cauliflower"}, {"name": "Salt"}],
+        }
+        res = self.client.post(RECIPE_URL, payload, format="json")
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        recipes = Recipe.objects.filter(user=self.user)
+        self.assertEqual(len(recipes), 1)
+        recipe = recipes.first()
+
+        self.assertEqual(recipe.ingredients.count(), 2)
+        for ingredient in payload["ingredients"]:
+            exists = recipe.ingredients.filter(name=ingredient["name"]).exists()
+            self.assertTrue(exists)
+
+    def test_create_recipe_with_existing_ingredient_works(self):
+        """Test that when creating a new recipe, we re-use an existing ingredient."""
+        lemon_ingredient = Ingredient.objects.create(user=self.user, name="Lemon")
+        payload = {
+            "title": "Vietnamese Soup",
+            "time_minutes": 35,
+            "price": Decimal("2.50"),
+            "ingredients": [{"name": "Lemon"}, {"name": "Fish Sauce"}]
+        }
+
+        res = self.client.post(RECIPE_URL, payload, format="json")
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        recipes = Recipe.objects.filter(user=self.user)
+        self.assertEqual(recipes.count(), 1)
+        recipe = recipes.first()
+
+        for ingredient in payload["ingredients"]:
+            exists = Ingredient.objects.filter(
+                user=self.user,
+                name=ingredient["name"]
+            ).exists()
+            self.assertTrue(exists)
+
+        self.assertIn(lemon_ingredient, recipe.ingredients.all())
