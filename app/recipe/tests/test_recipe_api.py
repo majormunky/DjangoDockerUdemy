@@ -455,7 +455,7 @@ class ImageUploadTests(TestCase):
         tag2 = Tag.objects.create(user=self.user, name="Side Dish")
         r1.tags.add(tag1)
         r2.tags.add(tag2)
-        
+
         params = {"tags": f"{tag1.id}, {tag2.id}"}
         res = self.client.get(RECIPE_URL, params)
 
